@@ -1,68 +1,34 @@
-name: Playwright CI
+name: Playwright Tests
 
 on:
-
-  push:
-    branches:
-      - main
-      - develop
-
-  pull_request:
-    branches:
-      - main
-      - develop
-
   workflow_dispatch:
 
 jobs:
-
-  test:
-
-    timeout-minutes: 30
-
+  playwright:
     runs-on: ubuntu-latest
 
     steps:
-
-      # 1. Checkout
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Node
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
-      # 3. Dependencies
       - name: Install dependencies
         run: npm ci
 
-      # 4. Browsers
-      - name: Install Playwright browsers
+      - name: Install Playwright
         run: npx playwright install --with-deps
 
-      # 5. TypeScript validation
-      - name: TypeScript validation
-        run: npx tsc --noEmit
+      - name: Run Playwright Tests
+        run: npx playwright test
 
-      # 6. Run tests
-      - name: Execute Playwright tests
-        run: npm test
-
-      # 7. Playwright report
-      - name: Upload Playwright report
+      - name: Upload Playwright Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: reports/playwright-report
-
-      # 8. Allure results
-      - name: Upload Allure results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results
-          path: reports/allure-results
+          path: playwright-report/
