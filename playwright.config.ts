@@ -1,45 +1,34 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const isCI = process.env.CI === 'true';
+
 export default defineConfig({
-  // Test location
   testDir: './e2e',
 
-  // Run independent tests in parallel
   fullyParallel: true,
 
-  // Prevent accidental test.only in CI
-  forbidOnly: !!process.env.CI,
+  forbidOnly: isCI,
 
-  // Retry failed tests only in CI
-  retries: process.env.CI ? 2 : 0,
+  retries: isCI ? 2 : 0,
 
-  // Parallel workers
-  // Local machine  -> Playwright decides
-  // GitHub Actions  -> 4 workers
-  workers: process.env.CI ? 4 : undefined,
-
-  // Test timeout
   timeout: 60_000,
 
-  // Assertion timeout
   expect: {
     timeout: 10_000,
   },
 
-  // Reports
   reporter: [
     ['list'],
 
     [
       'html',
       {
-        outputFolder: './playwright-report/index.html',
+        outputFolder: 'reports/playwright-report',
         open: 'never',
       },
     ],
   ],
 
-  // Common browser settings
   use: {
     baseURL: process.env.BASE_URL || 'https://demoqa.com',
 
@@ -56,7 +45,6 @@ export default defineConfig({
     navigationTimeout: 30_000,
   },
 
-  // Browser
   projects: [
     {
       name: 'chromium',
@@ -66,4 +54,10 @@ export default defineConfig({
       },
     },
   ],
+
+  ...(isCI
+    ? {
+        workers: 4,
+      }
+    : {}),
 });

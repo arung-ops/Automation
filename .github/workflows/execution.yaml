@@ -1,4 +1,4 @@
-name: Playwright Test Execution -Sanity
+name: Playwright Test Execution
 
 on:
   workflow_dispatch:
@@ -17,16 +17,16 @@ jobs:
 
     steps:
 
-      # -----------------------------------
+      # ----------------------------------------
       # 1. Checkout Repository
-      # -----------------------------------
+      # ----------------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
 
 
-      # -----------------------------------
+      # ----------------------------------------
       # 2. Setup Node.js
-      # -----------------------------------
+      # ----------------------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -34,53 +34,53 @@ jobs:
           cache: npm
 
 
-      # -----------------------------------
-      # 3. Display Node & npm versions
-      # -----------------------------------
+      # ----------------------------------------
+      # 3. Verify Node
+      # ----------------------------------------
       - name: Verify Node.js
         run: |
           node --version
           npm --version
 
 
-      # -----------------------------------
+      # ----------------------------------------
       # 4. Install Dependencies
-      # -----------------------------------
+      # ----------------------------------------
       - name: Install Dependencies
         run: npm ci
 
 
-      # -----------------------------------
-      # 5. Install Playwright Browsers
-      # -----------------------------------
+      # ----------------------------------------
+      # 5. Install Playwright
+      # ----------------------------------------
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
 
 
-      # -----------------------------------
+      # ----------------------------------------
       # 6. Verify Playwright
-      # -----------------------------------
+      # ----------------------------------------
       - name: Verify Playwright
         run: npx playwright --version
 
 
-      # -----------------------------------
+      # ----------------------------------------
       # 7. TypeScript Validation
-      # -----------------------------------
+      # ----------------------------------------
       - name: TypeScript Validation
         run: npx tsc --noEmit
 
 
-      # -----------------------------------
-      # 8. Run Playwright Tests
-      # -----------------------------------
+      # ----------------------------------------
+      # 8. Execute Playwright
+      # ----------------------------------------
       - name: Run Playwright Tests
         run: npx playwright test
 
 
-      # -----------------------------------
+      # ----------------------------------------
       # 9. Upload Playwright Report
-      # -----------------------------------
+      # ----------------------------------------
       - name: Upload Playwright Report
         if: always()
         uses: actions/upload-artifact@v4
@@ -91,14 +91,44 @@ jobs:
           retention-days: 30
 
 
-      # -----------------------------------
-      # 10. Upload All Reports
-      # -----------------------------------
-      - name: Upload Reports
+      # ----------------------------------------
+      # 10. Upload Test Results
+      # ----------------------------------------
+      - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: reports
+          name: test-results
           path: reports/
           if-no-files-found: warn
           retention-days: 30
+
+
+      # ----------------------------------------
+      # 11. GitHub Execution Summary
+      # ----------------------------------------
+      - name: Test Execution Summary
+        if: always()
+        run: |
+          echo "# 🎭 Playwright Test Execution" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "## Execution Details" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Node.js | $(node --version) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Playwright | $(npx playwright --version) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Command | npx playwright test |" >> $GITHUB_STEP_SUMMARY
+          echo "| Workers | 4 |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | CI |" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "## 📊 Reports" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Playwright HTML Report uploaded as artifact" >> $GITHUB_STEP_SUMMARY
+          echo "- Screenshots uploaded on failure" >> $GITHUB_STEP_SUMMARY
+          echo "- Videos retained on failure" >> $GITHUB_STEP_SUMMARY
+          echo "- Traces retained on failure" >> $GITHUB_STEP_SUMMARY
