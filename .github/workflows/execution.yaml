@@ -12,57 +12,93 @@ jobs:
 
     timeout-minutes: 30
 
+    env:
+      CI: true
+
     steps:
 
-      # 1. Checkout code
+      # -----------------------------------
+      # 1. Checkout Repository
+      # -----------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
 
 
+      # -----------------------------------
       # 2. Setup Node.js
+      # -----------------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
 
-      # 3. Install npm dependencies
+      # -----------------------------------
+      # 3. Display Node & npm versions
+      # -----------------------------------
+      - name: Verify Node.js
+        run: |
+          node --version
+          npm --version
+
+
+      # -----------------------------------
+      # 4. Install Dependencies
+      # -----------------------------------
       - name: Install Dependencies
         run: npm ci
 
 
-      # 4. Install Playwright browsers
+      # -----------------------------------
+      # 5. Install Playwright Browsers
+      # -----------------------------------
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
 
-      # 5. Verify Playwright
-      - name: Verify Playwright Installation
+      # -----------------------------------
+      # 6. Verify Playwright
+      # -----------------------------------
+      - name: Verify Playwright
         run: npx playwright --version
 
 
-      # 6. Run Playwright tests
-      # Parallel execution is controlled by playwright.config.ts
+      # -----------------------------------
+      # 7. TypeScript Validation
+      # -----------------------------------
+      - name: TypeScript Validation
+        run: npx tsc --noEmit
+
+
+      # -----------------------------------
+      # 8. Run Playwright Tests
+      # -----------------------------------
       - name: Run Playwright Tests
         run: npx playwright test
 
 
-      # 7. Upload Playwright HTML report
+      # -----------------------------------
+      # 9. Upload Playwright Report
+      # -----------------------------------
       - name: Upload Playwright Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report/
+          path: reports/playwright-report/
+          if-no-files-found: warn
           retention-days: 30
 
 
-      # 8. Upload test evidence
-      - name: Upload Test Results
+      # -----------------------------------
+      # 10. Upload All Reports
+      # -----------------------------------
+      - name: Upload Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: test-results/
+          name: reports
+          path: reports/
+          if-no-files-found: warn
           retention-days: 30
