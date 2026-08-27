@@ -1,4 +1,4 @@
-name: Playwright Test Execution
+name: Playwright Test Execution -Sanity
 
 on:
   workflow_dispatch:
