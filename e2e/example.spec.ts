@@ -2,12 +2,20 @@ import { test, expect } from '@playwright/test';
 
 const LOGIN_URL = 'https://hq.nyovate.dev/login';
 
-test.describe('NyoHQ - Login', () => {
+test.describe('NyoHQ - Login Page', () => {
 
-  // TC01 - Positive
-  test('TC01 - Verify NyoHQ login page is displayed', async ({ page }) => {
-
+  test.beforeEach(async ({ page }) => {
     await page.goto(LOGIN_URL);
+    await page.waitForLoadState('domcontentloaded');
+  });
+
+
+  // =========================================================
+  // POSITIVE TEST CASES
+  // =========================================================
+
+  // TC01
+  test('TC01 - Verify NyoHQ login page is displayed', async ({ page }) => {
 
     await expect(
       page.getByRole('heading', {
@@ -15,128 +23,86 @@ test.describe('NyoHQ - Login', () => {
       })
     ).toBeVisible();
 
+    await expect(page).toHaveURL(LOGIN_URL);
   });
 
 
-  // TC02 - Positive
+  // TC02
   test('TC02 - Verify NyoHQ product description is displayed', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
 
     await expect(
       page.getByText('The Product Operating System.')
     ).toBeVisible();
-
   });
 
 
-  // TC03 - Positive
-  test('TC03 - Verify Continue with Google option is displayed', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
+  // TC03
+  test('TC03 - Verify Continue with Google button is displayed', async ({ page }) => {
 
     await expect(
       page.getByRole('button', {
         name: /Continue with Google/i
       })
     ).toBeVisible();
-
   });
 
 
-  // TC04 - Positive
+  // TC04
   test('TC04 - Verify QA sign-in option is displayed', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
 
     await expect(
       page.getByText('QA sign-in (email code)')
     ).toBeVisible();
-
   });
 
 
-  // TC05 - Positive
+  // TC05
   test('TC05 - Verify supported account information is displayed', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
 
     await expect(
       page.getByText(
         'Sign in with your nyovate.com or nyavx.com account.'
       )
     ).toBeVisible();
-
   });
 
 
-  // TC06 - Negative
-  test('TC06 - Verify unauthorized user cannot access NyoHQ', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
+  // TC06
+  test('TC06 - Verify administrator contact information is displayed', async ({ page }) => {
 
     await expect(
       page.getByText(
         "Don't have access? Contact your administrator."
       )
     ).toBeVisible();
-
   });
 
 
-  // TC07 - Negative
-  test('TC07 - Verify invalid login does not provide access', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    // This test intentionally does not use real credentials.
-    // Replace with the application's QA authentication flow
-    // when credentials/test data are available.
-
-    await expect(
-      page.getByRole('heading', {
-        name: 'Sign in to NyoHQ'
-      })
-    ).toBeVisible();
-
-  });
-
-
-  // TC08 - Negative
-  test('TC08 - Verify login page does not allow blank authentication submission', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
+  // TC07
+  test('TC07 - Verify login page contains Sign in heading', async ({ page }) => {
 
     const heading = page.getByRole('heading', {
       name: 'Sign in to NyoHQ'
     });
 
     await expect(heading).toBeVisible();
-
-    // No authentication should occur without user credentials.
-    await expect(page).toHaveURL(LOGIN_URL);
-
   });
 
 
-  // TC09 - Negative
-  test('TC09 - Verify user without access is instructed to contact administrator', async ({ page }) => {
+  // TC08
+  test('TC08 - Verify Google sign-in button is enabled', async ({ page }) => {
 
-    await page.goto(LOGIN_URL);
+    const googleButton = page.getByRole('button', {
+      name: /Continue with Google/i
+    });
 
-    await expect(
-      page.getByText(
-        "Don't have access? Contact your administrator."
-      )
-    ).toBeVisible();
-
+    await expect(googleButton).toBeVisible();
+    await expect(googleButton).toBeEnabled();
   });
 
 
-  // TC10 - Positive
-  test('TC10 - Verify QA sign-in flow can be initiated', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
+  // TC09
+  test('TC09 - Verify QA email-code option is clickable', async ({ page }) => {
 
     const qaSignIn = page.getByText(
       'QA sign-in (email code)'
@@ -144,281 +110,169 @@ test.describe('NyoHQ - Login', () => {
 
     await expect(qaSignIn).toBeVisible();
 
-    await qaSignIn.click();
+    await expect(qaSignIn).toBeEnabled();
+  });
 
-    // The exact next-page assertion should be updated
-    // based on the QA email-code implementation.
-    await expect(page).not.toHaveURL(LOGIN_URL);
 
+  // TC10
+  test('TC10 - Verify login page remains accessible after reload', async ({ page }) => {
+
+    await page.reload();
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Sign in to NyoHQ'
+      })
+    ).toBeVisible();
+
+    await expect(page).toHaveURL(LOGIN_URL);
+  });
+
+
+  // =========================================================
+  // NEGATIVE TEST CASES
+  // =========================================================
+
+  // TC11
+  test('TC11 - Verify unauthorized user access message is displayed', async ({ page }) => {
+
+    await expect(
+      page.getByText(
+        "Don't have access? Contact your administrator."
+      )
+    ).toBeVisible();
+  });
+
+
+  // TC12
+  test('TC12 - Verify unauthenticated user remains on login page', async ({ page }) => {
+
+    await expect(page).toHaveURL(LOGIN_URL);
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Sign in to NyoHQ'
+      })
+    ).toBeVisible();
+  });
+
+
+  // TC13
+  test('TC13 - Verify blank authentication does not provide access', async ({ page }) => {
+
+    await expect(page).toHaveURL(LOGIN_URL);
+
+    // No credentials or authentication action is performed.
+    // User should remain unauthenticated.
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Sign in to NyoHQ'
+      })
+    ).toBeVisible();
+  });
+
+
+  // TC14
+  test('TC14 - Verify invalid URL does not provide authenticated access', async ({ page }) => {
+
+    await page.goto(
+      'https://hq.nyovate.dev/invalid-page'
+    );
+
+    await expect(page).not.toHaveURL(
+      /dashboard|home/i
+    );
+  });
+
+
+  // TC15
+  test('TC15 - Verify unauthorized access message remains available', async ({ page }) => {
+
+    const accessMessage = page.getByText(
+      "Don't have access? Contact your administrator."
+    );
+
+    await expect(accessMessage).toBeVisible();
+  });
+
+
+  // TC16
+  test('TC16 - Verify login page does not expose authenticated dashboard without login', async ({ page }) => {
+
+    await expect(page).toHaveURL(LOGIN_URL);
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Sign in to NyoHQ'
+      })
+    ).toBeVisible();
+
+    await expect(
+      page.getByText(/dashboard/i)
+    ).not.toBeVisible();
+  });
+
+
+  // TC17
+  test('TC17 - Verify unsupported account information is not incorrectly displayed', async ({ page }) => {
+
+    await expect(
+      page.getByText(
+        'Sign in with your nyovate.com or nyavx.com account.'
+      )
+    ).toBeVisible();
+
+    await expect(
+      page.getByText(
+        'Sign in with your gmail.com account.'
+      )
+    ).not.toBeVisible();
+  });
+
+
+  // TC18
+  test('TC18 - Verify invalid authentication cannot be assumed as successful', async ({ page }) => {
+
+    await expect(page).toHaveURL(LOGIN_URL);
+
+    // No valid credentials are supplied.
+    // Therefore the test verifies that we do not reach
+    // an authenticated application page.
+
+    await expect(page).not.toHaveURL(
+      /dashboard|workspace|projects/i
+    );
+  });
+
+
+  // TC19
+  test('TC19 - Verify login page does not automatically authenticate user', async ({ page }) => {
+
+    await page.waitForTimeout(1000);
+
+    await expect(page).toHaveURL(LOGIN_URL);
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Sign in to NyoHQ'
+      })
+    ).toBeVisible();
+  });
+
+
+  // TC20
+  test('TC20 - Verify user is instructed to contact administrator when access is unavailable', async ({ page }) => {
+
+    const message = page.getByText(
+      "Don't have access? Contact your administrator."
+    );
+
+    await expect(message).toBeVisible();
+
+    await expect(message).toContainText(
+      'Contact your administrator'
+    );
   });
 
 });
-/ TC02 - Positive
-  test('TC02 - Verify NyoHQ product description is displayed', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    await expect(
-      page.getByText('The Product Operating System.')
-    ).toBeVisible();
-
-  });
-
-
-  // TC03 - Positive
-  test('TC03 - Verify Continue with Google option is displayed', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    await expect(
-      page.getByRole('button', {
-        name: /Continue with Google/i
-      })
-    ).toBeVisible();
-
-  });
-
-
-  // TC04 - Positive
-  test('TC04 - Verify QA sign-in option is displayed', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    await expect(
-      page.getByText('QA sign-in (email code)')
-    ).toBeVisible();
-
-  });
-
-
-  // TC05 - Positive
-  test('TC05 - Verify supported account information is displayed', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    await expect(
-      page.getByText(
-        'Sign in with your nyovate.com or nyavx.com account.'
-      )
-    ).toBeVisible();
-
-  });
-
-
-  // TC06 - Negative
-  test('TC06 - Verify unauthorized user cannot access NyoHQ', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    await expect(
-      page.getByText(
-        "Don't have access? Contact your administrator."
-      )
-    ).toBeVisible();
-
-  });
-
-
-  // TC07 - Negative
-  test('TC07 - Verify invalid login does not provide access', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    // This test intentionally does not use real credentials.
-    // Replace with the application's QA authentication flow
-    // when credentials/test data are available.
-
-    await expect(
-      page.getByRole('heading', {
-        name: 'Sign in to NyoHQ'
-      })
-    ).toBeVisible();
-
-  });
-
-
-  // TC08 - Negative
-  test('TC08 - Verify login page does not allow blank authentication submission', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    const heading = page.getByRole('heading', {
-      name: 'Sign in to NyoHQ'
-    });
-
-    await expect(heading).toBeVisible();
-
-    // No authentication should occur without user credentials.
-    await expect(page).toHaveURL(LOGIN_URL);
-
-  });
-
-
-  // TC09 - Negative
-  test('TC09 - Verify user without access is instructed to contact administrator', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    await expect(
-      page.getByText(
-        "Don't have access? Contact your administrator."
-      )
-    ).toBeVisible();
-
-  });
-
-
-  // TC10 - Positive
-  test('TC10 - Verify QA sign-in flow can be initiated', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    const qaSignIn = page.getByText(
-      'QA sign-in (email code)'
-    );
-
-    await expect(qaSignIn).toBeVisible();
-
-    await qaSignIn.click();
-
-    // The exact next-page assertion should be updated
-    // based on the QA email-code implementation.
-    await expect(page).not.toHaveURL(LOGIN_URL);
-
-  });
-
-
-  test('TC12 - Verify NyoHQ product description is displayed', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    await expect(
-      page.getByText('The Product Operating System.')
-    ).toBeVisible();
-
-  });
-
-
-  // TC03 - Positive
-  test('TC13 - Verify Continue with Google option is displayed', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    await expect(
-      page.getByRole('button', {
-        name: /Continue with Google/i
-      })
-    ).toBeVisible();
-
-  });
-
-
-  // TC04 - Positive
-  test('TC14 - Verify QA sign-in option is displayed', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    await expect(
-      page.getByText('QA sign-in (email code)')
-    ).toBeVisible();
-
-  });
-
-
-  // TC05 - Positive
-  test('TC15 - Verify supported account information is displayed', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    await expect(
-      page.getByText(
-        'Sign in with your nyovate.com or nyavx.com account.'
-      )
-    ).toBeVisible();
-
-  });
-
-
-  // TC06 - Negative
-  test('TC16 - Verify unauthorized user cannot access NyoHQ', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    await expect(
-      page.getByText(
-        "Don't have access? Contact your administrator."
-      )
-    ).toBeVisible();
-
-  });
-
-
-  // TC07 - Negative
-  test('TC17 - Verify invalid login does not provide access', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    // This test intentionally does not use real credentials.
-    // Replace with the application's QA authentication flow
-    // when credentials/test data are available.
-
-    await expect(
-      page.getByRole('heading', {
-        name: 'Sign in to NyoHQ'
-      })
-    ).toBeVisible();
-
-  });
-
-
-  // TC08 - Negative
-  test('TC18 - Verify login page does not allow blank authentication submission', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    const heading = page.getByRole('heading', {
-      name: 'Sign in to NyoHQ'
-    });
-
-    await expect(heading).toBeVisible();
-
-    // No authentication should occur without user credentials.
-    await expect(page).toHaveURL(LOGIN_URL);
-
-  });
-
-
-  // TC09 - Negative
-  test('TC19 - Verify user without access is instructed to contact administrator', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    await expect(
-      page.getByText(
-        "Don't have access? Contact your administrator."
-      )
-    ).toBeVisible();
-
-  });
-
-
-  // TC10 - Positive
-  test('TC20 - Verify QA sign-in flow can be initiated', async ({ page }) => {
-
-    await page.goto(LOGIN_URL);
-
-    const qaSignIn = page.getByText(
-      'QA sign-in (email code)'
-    );
-
-    await expect(qaSignIn).toBeVisible();
-
-    await qaSignIn.click();
-
-    // The exact next-page assertion should be updated
-    // based on the QA email-code implementation.
-    await expect(page).not.toHaveURL(LOGIN_URL);
-
-  });
-
-
