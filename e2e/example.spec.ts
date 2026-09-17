@@ -275,7 +275,7 @@ test.describe('NyoHQ - Login Page', () => {
     );
   });
 
-   test('TC21 - Verify user is instructed to contact administrator when access is unavailable', async ({ page }) => {
+   test('TC21 - Verify user is instructed to contact administrator when access is avliable', async ({ page }) => {
 
     const message = page.getByText(
       "Don't have access? Contact your administrator."
