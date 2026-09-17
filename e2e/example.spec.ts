@@ -30,7 +30,7 @@ test.describe('NyoHQ - Login Page', () => {
   });
 
 
-  test('TC03 - Verify Continue with Google button is displayed', async ({ page }) => {
+  test('TC03 - Verify Continue with Google button sis displayed', async ({ page }) => {
 
     await expect(
       page.getByRole('button', {
