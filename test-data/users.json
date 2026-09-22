@@ -1,0 +1,32 @@
+{
+	"loginCases": [
+		{
+			"id": "valid-format",
+			"type": "positive",
+			"username": "qa.user@nyovate.com",
+			"password": "ValidPassword123!",
+			"expected": "accepted-format"
+		},
+		{
+			"id": "invalid-email",
+			"type": "negative",
+			"username": "invalid-email",
+			"password": "InvalidPassword123!",
+			"expected": "rejected-format"
+		},
+		{
+			"id": "blank-credentials",
+			"type": "boundary",
+			"username": "",
+			"password": "",
+			"expected": "empty-values"
+		},
+		{
+			"id": "wrong-password",
+			"type": "negative",
+			"username": "qa.user@nyovate.com",
+			"password": "WrongPassword123!",
+			"expected": "not-authenticated"
+		}
+	]
+}

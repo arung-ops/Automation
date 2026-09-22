@@ -124,7 +124,19 @@ test.describe('NyoHQ - Login Page', () => {
       )
     ).not.toBeVisible();
   });
+ test('TC13- Verify all the lements ion is not displayed', async ({ page }) => {
 
+    await expect(
+      page.getByText(
+        'Sign in with your nyovate.com or nyavx.com account.'
+      )
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        'Sign in with your gmail.com account.'
+      )
+    ).not.toBeVisible();
+  });
 
   test('TC12 - Verify administrator contact message is displayed', async ({ page }) => {
 
